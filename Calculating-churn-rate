@@ -1,0 +1,68 @@
+-- Let's take a look at the first 100 rows of data in the subscriptions table. How many different segments do we see?
+SELECT * FROM subscriptions
+LIMIT 100;
+/* Two segments: 30 and 87 */
+
+-- Determine the range of months of data provided. Which months will I be able to calculate churn for?
+SELECT MIN(subscription_start), MAX(subscription_start)
+FROM subscriptions;
+/* 2016-12-01 	2017-03-30. 15 months of data.*/
+
+-- I'll be calculating the churn rate for both segments (87 and 30) over the first 3 months of 2017. To get started, I'll create a temporary table of months.
+WITH months AS
+(SELECT '2017-01-01' AS first_day,
+        '2017-01-31' AS last_day
+UNION
+SELECT '2017-02-01' AS first_day,
+        '2017-02-28' AS last_day
+UNION
+SELECT '2017-03-01' AS first_day,
+        '2017-03-31' AS last_day),
+        
+-- Then, I'll c'reate a temporary table, cross_join, from subscriptions and months tables
+cross_join AS
+(SELECT * FROM subscriptions
+CROSS JOIN months),
+-- Then, I'll create a temporary table, status, from the cross_join table you created.
+status AS
+(SELECT id, first_day AS month,
+  CASE
+    WHEN (subscription_start < first_day)
+      AND (subscription_end > first_day
+        OR subscription_end IS NULL)
+      AND (segment = 87) THEN 1
+       ELSE 0
+  END AS is_active_87,
+  CASE
+    WHEN (subscription_start < first_day)
+      AND (subscription_end > first_day
+        OR subscription_end IS NULL)
+      AND (segment = 30) THEN 1
+       ELSE 0
+  END AS is_active_30,
+  CASE
+    WHEN (subscription_end BETWEEN first_day AND last_day)
+      AND (segment = 30) THEN 1
+        ELSE 0
+    END AS is_canceled_30,
+  CASE
+    WHEN (subscription_end BETWEEN first_day AND last_day)
+      AND (segment = 87) THEN 1
+        ELSE 0
+    END AS is_canceled_87
+  FROM cross_join),
+  
+-- Almost there! I'll create a status_aggregate temporary table that is a sum of the active and canceled subscriptions for each segment, for each month.
+status_aggregate AS
+(SELECT SUM(is_active_87) sum_active_87, SUM(is_active_30) sum_active_30, SUM(is_canceled_87) sum_canceled_87, SUM(is_canceled_30) sum_canceled_30
+FROM status
+GROUP BY month)
+
+-- Finally, we can calculate the churn rates for the two segments over the three-month period.
+SELECT ROUND(100.0 * sum_canceled_87 / sum_active_87, 2) AS churn_rate_87, ROUND(100.0 * sum_canceled_30 / sum_active_30, 2) AS churn_rate_30 
+FROM status_aggregate
+
+/* churn_rate_87 	churn_rate_30
+          25.18 	  7.56
+          32.03 	  7.34
+          48.59 	  11.73 */
