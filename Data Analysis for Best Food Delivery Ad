@@ -1,0 +1,99 @@
+SELECT *
+FROM orders
+LIMIT 10;
+-- What are the column names?
+-- id 	user_id 	order_date 	restaurant_id 	item_name 	special_instructions
+
+
+SELECT DISTINCT order_date
+FROM orders
+ORDER BY order_date ASC
+LIMIT 10;
+-- How recent is this data?
+-- Oldest data point goes back to 2017-05-03
+
+
+SELECT special_instructions
+FROM orders
+LIMIT 20;
+-- Instead of selecting all the columns using *, 
+-- write a query that selects only the special_instructions column.
+
+-- Limit the result to 20 rows.
+
+
+SELECT special_instructions
+FROM orders
+WHERE special_instructions IS NOT NULL
+LIMIT 20;
+-- Can you edit the query so that we are only 
+-- returning the special instructions that are not empty?
+
+
+SELECT special_instructions
+FROM orders
+WHERE special_instructions IS NOT NULL
+ORDER BY special_instructions ASC
+LIMIT 20;
+-- Let’s go even further and sort the instructions 
+-- in alphabetical order (A-Z).
+
+
+SELECT special_instructions SI_sauce
+FROM orders
+WHERE SI_sauce IS NOT NULL
+AND SI_sauce LIKE "%sauce%"
+ORDER BY SI_sauce ASC
+LIMIT 20;
+-- Let’s search for special instructions that have the word ‘sauce’.
+-- Are there any funny or interesting ones? 
+-- BBQ sauce, SRIRACHA SAUCE, mild sauce
+
+
+SELECT special_instructions SI_door
+FROM orders
+WHERE SI_door IS NOT NULL
+AND SI_door LIKE "%door%"
+ORDER BY SI_door ASC
+LIMIT 20;
+-- Let’s search for special instructions that have the word ‘door’.
+-- Any funny or interesting ones?
+-- "Door Code: Codecademy" 
+-- "kids sleeping. please don't ring the doorbell thank u!", "ring doorbell" 
+-- "super hungover. let yourself in pass the fridge turn left and double doors my bedroom. im in my pajamas watching james bond 1love" (That one's hysterical. love it)
+
+SELECT special_instructions SI_box
+FROM orders
+WHERE SI_box IS NOT NULL
+AND SI_box LIKE "%box%"
+ORDER BY SI_box ASC
+LIMIT 20;
+-- Let’s search for special instructions that have the word ‘box’.
+-- Any funny or interesting ones?
+-- Cleanse yourself with the sage in the mailbox.
+-- "Draw Yoda on pizza box."
+-- "Draw a narwhal on the delivery box."
+-- "beat me tic-tac-toe on the pizza box for $5 tip"
+-- "beat me tic-tac-toe on the pizza box for $5 tip"
+-- "my coworker and i are working overtime. can u write some inspiration/motivations on the box. u rock!"
+-- "write me a poem on the pizza box."
+
+
+SELECT id "#", special_instructions Notes
+FROM orders
+WHERE Notes LIKE "%sauce%"
+OR Notes LIKE "%door%"
+OR Notes LIKE "%box%"
+LIMIT 50;
+-- Instead of just returning the special instructions, also return their order ids.
+-- For more readability:
+-- Rename id as ‘#’
+-- Rename special_instructions as ‘Notes’
+
+
+SELECT user_id Madlad_id, restaurant_id, item_name
+FROM orders
+WHERE special_instructions LIKE "%narwhal%";
+-- Challenge
+-- They have asked you to query the customer who made the phrase. 
+-- Return the item_name restaurant_id, and user_id for the person created the phrase.
